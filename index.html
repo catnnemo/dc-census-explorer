@@ -3,26 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0a0c10">
-    <title>DC Area Explorer // Regional Telemetry</title>
-    <!-- Leaflet CSS & JS -->
+    <meta name="theme-color" content="#ffffff">
+    <title>DC Area Explorer</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
-            --bg-hud: rgba(13, 17, 23, 0.94);
-            --bg-card: #161b22;
-            --bg-card-hover: #21262d;
-            --border-hud: #30363d;
-            --border-focus: #58a6ff;
-            --text-hud: #f0f6fc;
-            --text-muted: #8b949e;
-            --accent-cyan: #00e5ff;
-            --accent-amber: #ffb000;
-            --accent-green: #00e575;
-            --accent-red: #ff3838;
-            --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Roboto Mono", "Menlo", monospace;
-            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            --bg: #ffffff;
+            --bg-panel: #ffffff;
+            --bg-subtle: #f5f5f4;
+            --border: #dcdcd8;
+            --text: #22221f;
+            --text-muted: #6b6b66;
+            --accent: #2b6cb0;
+            --accent-affordable: #2f7d5a;
+            --accent-warn: #b0492b;
+            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
         * {
             box-sizing: border-box;
@@ -34,158 +30,119 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            font-family: var(--font-mono);
-            background: #0a0c10;
-            color: var(--text-hud);
-            font-size: 12px;
-            letter-spacing: -0.01em;
+            font-family: var(--font-ui);
+            background: var(--bg-subtle);
+            color: var(--text);
+            font-size: 14px;
         }
         #map {
             height: 100%;
             width: 100%;
             z-index: 1;
-            background: #0d1117;
+            background: #eef0ea;
         }
 
-        /* Top HUD Bar (Mobile & Compact Display) */
-        .top-hud-bar {
+        /* Top bar */
+        .top-bar {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            background: rgba(10, 12, 16, 0.94);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-hud);
-            padding: 8px 14px;
-            padding-top: max(8px, env(safe-area-inset-top));
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            padding-top: max(10px, env(safe-area-inset-top));
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .hud-brand {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .hud-brand .indicator {
-            width: 8px;
-            height: 8px;
-            background: var(--accent-green);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent-green);
-        }
-        .hud-brand h1 {
-            font-family: var(--font-ui);
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+        .top-bar h1 {
+            font-size: 15px;
+            font-weight: 600;
             margin: 0;
-            color: var(--text-hud);
+            color: var(--text);
         }
-        .hud-brand .sub {
-            font-size: 10px;
-            color: var(--accent-cyan);
-            letter-spacing: 0.05em;
+        .top-bar .count {
+            font-size: 12px;
+            color: var(--text-muted);
         }
-        .btn-hud-panel {
-            background: #161b22;
-            color: var(--accent-cyan);
-            border: 1px solid var(--border-hud);
-            border-radius: 3px;
-            padding: 5px 10px;
-            font-family: var(--font-mono);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
+        .btn-panel-toggle {
+            display: none;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            text-transform: uppercase;
-        }
-        .btn-hud-panel:hover, .btn-hud-panel:active {
-            background: #21262d;
-            border-color: var(--accent-cyan);
         }
 
-        /* Main Control HUD Panel */
+        /* Control panel */
         .control-panel {
             position: absolute;
-            top: 50px;
-            left: 14px;
+            top: 60px;
+            left: 16px;
             z-index: 1000;
-            background: var(--bg-hud);
-            backdrop-filter: blur(14px);
-            border: 1px solid var(--border-hud);
-            border-radius: 4px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-            width: 390px;
-            max-width: calc(100vw - 28px);
-            max-height: calc(100vh - 65px);
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            width: 360px;
+            max-width: calc(100vw - 32px);
+            max-height: calc(100vh - 76px);
             overflow-y: auto;
-            padding: 14px 16px;
+            padding: 16px;
         }
-        .panel-top-row {
+        .panel-header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #21262d;
-            padding-bottom: 6px;
+            margin-bottom: 12px;
         }
-        .panel-top-row .tag {
-            font-size: 10px;
-            color: var(--text-muted);
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+        .panel-header-row .title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
         }
-        .panel-top-row .counter {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--accent-green);
-        }
-        .btn-close-hud {
+        .btn-close-panel {
             display: none;
             background: transparent;
             border: none;
+            font-size: 20px;
             color: var(--text-muted);
-            font-size: 16px;
             cursor: pointer;
             padding: 0 4px;
-            font-family: var(--font-mono);
+            line-height: 1;
         }
 
-        /* Modular Tabs */
-        .hud-tabs {
+        /* Tabs */
+        .tabs {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 2px;
-            background: #0a0c10;
-            border: 1px solid var(--border-hud);
-            border-radius: 3px;
-            padding: 2px;
-            margin-bottom: 12px;
+            gap: 4px;
+            background: var(--bg-subtle);
+            border-radius: 8px;
+            padding: 3px;
+            margin-bottom: 14px;
         }
-        .hud-tab-btn {
+        .tab-btn {
             background: transparent;
             border: none;
-            border-radius: 2px;
-            padding: 6px 2px;
-            font-family: var(--font-mono);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
+            border-radius: 6px;
+            padding: 7px 4px;
+            font-size: 12px;
+            font-weight: 600;
             color: var(--text-muted);
             cursor: pointer;
             text-align: center;
-            text-transform: uppercase;
-            transition: all 0.1s;
         }
-        .hud-tab-btn.active {
-            background: #21262d;
-            color: var(--accent-cyan);
-            box-shadow: inset 0 -1px 0 var(--accent-cyan);
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--text);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
-
         .tab-pane {
             display: none;
         }
@@ -193,95 +150,73 @@
             display: block;
         }
 
-        /* Mode Selector Grid */
-        .hud-section-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+        /* Section labels */
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
             color: var(--text-muted);
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
         }
-        .mode-matrix {
+
+        /* Mode selector */
+        .mode-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4px;
-            margin-bottom: 8px;
+            gap: 6px;
+            margin-bottom: 10px;
         }
-        .mode-tile {
-            background: var(--bg-card);
-            border: 1px solid var(--border-hud);
-            border-radius: 3px;
-            padding: 8px 6px;
-            font-family: var(--font-mono);
-            font-size: 10.5px;
-            font-weight: 700;
-            color: var(--text-hud);
+        .mode-btn {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
             cursor: pointer;
             text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-            min-height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            line-height: 1.3;
         }
-        .mode-tile.active {
-            background: #1f2937;
-            border-color: var(--accent-cyan);
-            color: var(--accent-cyan);
+        .mode-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #ffffff;
         }
-        .mode-tile:hover {
-            background: var(--bg-card-hover);
-        }
-
-        .mode-info-box {
-            font-size: 10.5px;
-            line-height: 1.4;
+        .mode-desc {
+            font-size: 12px;
+            line-height: 1.45;
             color: var(--text-muted);
-            background: #0a0c10;
-            border-left: 2px solid var(--accent-cyan);
-            padding: 6px 8px;
-            border-radius: 0 3px 3px 0;
-            margin-bottom: 12px;
+            background: var(--bg-subtle);
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 14px;
         }
 
-        /* Slider Controls */
-        .hud-slider-group {
-            background: var(--bg-card);
-            border: 1px solid var(--border-hud);
-            border-radius: 3px;
-            padding: 10px 12px;
-            margin-bottom: 10px;
+        /* Sliders */
+        .slider-block {
+            margin-bottom: 14px;
         }
-        .slider-meta-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10.5px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-        }
-        .meta-tag-rent {
-            color: var(--accent-green);
-        }
-        .meta-tag-dens {
-            color: var(--accent-cyan);
-        }
-        .filter-row {
-            margin-bottom: 10px;
-        }
-        .filter-row:last-child {
+        .slider-block:last-child {
             margin-bottom: 0;
         }
-
-        /* Custom Utilitarian Sliders */
+        .slider-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12.5px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .slider-label-row .val {
+            color: var(--accent);
+            font-weight: 700;
+        }
         input[type="range"] {
             width: 100%;
-            height: 4px;
-            border-radius: 0;
-            background: #30363d;
+            height: 5px;
+            border-radius: 3px;
+            background: var(--border);
             outline: none;
             -webkit-appearance: none;
             cursor: pointer;
@@ -290,216 +225,217 @@
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 14px;
-            height: 18px;
-            border-radius: 1px;
-            background: var(--text-hud);
-            border: 1px solid #000000;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid var(--accent);
             cursor: pointer;
-            box-shadow: 0 0 4px rgba(0,0,0,0.8);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.25);
         }
 
-        /* Telemetry Readout Grid (Desktop HUD) */
-        .telemetry-card {
-            position: absolute;
-            top: 50px;
-            right: 14px;
-            z-index: 1000;
-            background: var(--bg-hud);
-            backdrop-filter: blur(14px);
-            border: 1px solid var(--border-hud);
-            border-radius: 4px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-            width: 320px;
-            max-width: calc(100vw - 28px);
-            padding: 14px 16px;
-        }
-        .telemetry-card h3 {
-            margin: 0;
-            font-family: var(--font-ui);
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--text-hud);
-        }
-        .telemetry-card .loc {
-            font-size: 11px;
-            color: var(--accent-cyan);
+        .filter-reset {
+            font-size: 11.5px;
+            color: var(--accent-warn);
+            cursor: pointer;
             font-weight: 600;
-            margin-bottom: 8px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .hud-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px;
-            margin: 8px 0;
-        }
-        .hud-cell {
-            background: #0a0c10;
-            border: 1px solid var(--border-hud);
-            padding: 6px 8px;
-            border-radius: 2px;
-        }
-        .hud-cell .k {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-        }
-        .hud-cell .v {
-            font-size: 12.5px;
-            font-weight: 700;
-            color: var(--text-hud);
-            margin-top: 2px;
-            font-family: var(--font-mono);
-        }
-        .hud-cell.hl-green .v {
-            color: var(--accent-green);
-        }
-        .hud-cell.hl-cyan .v {
-            color: var(--accent-cyan);
-        }
-
-        /* Colorbar Display */
-        .colorbar-box {
-            margin-top: 10px;
-            border-top: 1px solid #21262d;
-            padding-top: 8px;
-        }
-        .colorbar-track {
-            height: 6px;
-            border-radius: 1px;
-            background: linear-gradient(to right, #ffffcc, #a1dab4, #41b6c4, #2c7fb8, #253494);
-            margin: 3px 0;
-        }
-        .colorbar-scale {
-            display: flex;
-            justify-content: space-between;
-            font-size: 9px;
-            color: var(--text-muted);
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
         }
 
         /* Leaderboard */
-        .hud-leaderboard {
-            max-height: 230px;
+        .leaderboard {
+            max-height: 260px;
             overflow-y: auto;
         }
         .leader-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 4px;
-            border-bottom: 1px solid #21262d;
+            padding: 9px 8px;
+            border-bottom: 1px solid var(--bg-subtle);
             cursor: pointer;
-            font-size: 10.5px;
-            border-radius: 2px;
+            font-size: 12.5px;
+            border-radius: 6px;
         }
         .leader-row:hover, .leader-row:active {
-            background: #1f2937;
-            color: var(--accent-cyan);
+            background: var(--bg-subtle);
+        }
+        .leader-row .name {
+            color: var(--text);
+        }
+        .leader-row .rent {
+            color: var(--text-muted);
+            font-size: 11.5px;
+        }
+        .leader-row .rank {
+            color: var(--accent);
+            font-weight: 700;
+            margin-right: 6px;
         }
 
-        /* Layers Toggles */
-        .hud-toggles {
+        /* Layer toggles */
+        .layer-list {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
-        .hud-toggle-item {
+        .layer-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--bg-card);
-            border: 1px solid var(--border-hud);
-            padding: 8px 10px;
-            border-radius: 2px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
+            font-size: 13px;
         }
-        .hud-toggle-item input[type="checkbox"] {
-            width: 14px;
-            height: 14px;
-            accent-color: var(--accent-cyan);
+        .layer-item input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--accent);
             cursor: pointer;
         }
 
-        /* Export Button */
-        .btn-export-hud {
-            width: 100%;
-            background: #1f2937;
-            color: var(--accent-cyan);
-            border: 1px solid var(--accent-cyan);
-            padding: 8px 12px;
-            border-radius: 2px;
-            font-family: var(--font-mono);
+        /* Legend */
+        .legend-box {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .legend-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #ffffcc, #a1dab4, #41b6c4, #2c7fb8, #253494);
+            margin-bottom: 4px;
+        }
+        .legend-scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Info card (desktop) */
+        .info-card {
+            position: absolute;
+            top: 60px;
+            right: 16px;
+            z-index: 1000;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            width: 300px;
+            max-width: calc(100vw - 32px);
+            padding: 16px;
+        }
+        .info-card .placeholder {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .info-card h3 {
+            margin: 0 0 2px 0;
+            font-size: 14.5px;
             font-weight: 700;
-            font-size: 11px;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
+            color: var(--text);
+        }
+        .info-card .sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .stat-box {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+        .stat-box .label {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        .stat-box .value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .stat-box.rent .value {
+            color: var(--accent-affordable);
+        }
+        .stat-box.score .value {
+            color: var(--accent);
+        }
+
+        /* Copy button */
+        .btn-copy {
+            width: 100%;
+            background: var(--bg);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
-            min-height: 38px;
-            margin-top: 8px;
-            transition: all 0.1s;
+            min-height: 40px;
         }
-        .btn-export-hud:hover, .btn-export-hud:active {
-            background: var(--accent-cyan);
-            color: #000000;
+        .btn-copy:hover {
+            background: #eef4fb;
         }
-        .btn-export-hud.copied {
-            background: var(--accent-green);
-            color: #000000;
-            border-color: var(--accent-green);
+        .btn-copy.copied {
+            background: var(--accent-affordable);
+            color: #ffffff;
+            border-color: var(--accent-affordable);
         }
 
-        /* Leaflet Dark Popup */
+        /* Leaflet popup */
         .leaflet-popup-content-wrapper {
-            background: #0d1117 !important;
-            color: #f0f6fc !important;
-            border: 1px solid var(--border-hud) !important;
-            border-radius: 4px !important;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.7) !important;
-            font-family: var(--font-mono) !important;
-        }
-        .leaflet-popup-tip {
-            background: #0d1117 !important;
+            border-radius: 8px !important;
+            font-family: var(--font-ui) !important;
         }
 
-        /* Mobile Responsive Bottom Sheet */
-        .mobile-bottom-hud {
+        /* Mobile bottom sheet */
+        .mobile-sheet {
             display: none;
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 1001;
-            background: rgba(13, 17, 23, 0.96);
-            backdrop-filter: blur(14px);
-            border-top: 1px solid var(--border-hud);
-            padding: 12px 14px;
-            padding-bottom: max(14px, env(safe-area-inset-bottom));
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            border-radius: 14px 14px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            padding: 12px 16px;
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
             transform: translateY(105%);
-            transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.22s ease-out;
         }
-        .mobile-bottom-hud.open {
+        .mobile-sheet.open {
             transform: translateY(0);
         }
-        .sheet-drag-line {
-            width: 32px;
-            height: 3px;
-            background: #30363d;
+        .drag-handle {
+            width: 34px;
+            height: 4px;
+            background: var(--border);
             border-radius: 2px;
-            margin: 0 auto 8px auto;
+            margin: 0 auto 10px auto;
         }
 
         @media (max-width: 768px) {
+            .btn-panel-toggle {
+                display: block;
+            }
+            .info-card {
+                display: none;
+            }
             .control-panel {
                 top: auto;
                 bottom: 0;
@@ -507,21 +443,20 @@
                 right: 0;
                 width: 100%;
                 max-width: 100%;
-                max-height: 75vh;
-                border-radius: 12px 12px 0 0;
+                max-height: 78vh;
+                border-radius: 14px 14px 0 0;
                 transform: translateY(105%);
-                transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+                transition: transform 0.22s ease-out;
+                border: none;
+                border-top: 1px solid var(--border);
             }
             .control-panel.open {
                 transform: translateY(0);
             }
-            .btn-close-hud {
+            .btn-close-panel {
                 display: block;
             }
-            .telemetry-card {
-                display: none;
-            }
-            .mobile-bottom-hud {
+            .mobile-sheet {
                 display: block;
             }
             .leaflet-control-zoom {
@@ -531,203 +466,187 @@
     </style>
 </head>
 <body>
-    <!-- Top HUD Navigation -->
-    <div class="top-hud-bar">
-        <div class="hud-brand">
-            <div class="indicator"></div>
-            <div>
-                <h1>DC Area Explorer</h1>
-                <div class="sub">SYS.ONLINE // RAD: 30 MI</div>
-            </div>
+    <div class="top-bar">
+        <div>
+            <h1>DC Area Explorer</h1>
+            <div class="count" id="mobile-active-count">1,128 tracts</div>
         </div>
-        <button class="btn-hud-panel" onclick="toggleControlPanel()">[ CONTROL_PANEL ]</button>
+        <button class="btn-panel-toggle" onclick="togglePanel()">Filters</button>
     </div>
 
     <div id="map"></div>
 
-    <!-- Main Control Panel -->
-    <div class="control-panel" id="main-control-panel">
-        <div class="panel-top-row">
-            <span class="tag">CONFIG // PARAMETERS</span>
-            <span class="counter" id="active-tract-count">1128 / 1128 ACTIVE</span>
-            <button class="btn-close-hud" onclick="toggleControlPanel()">[X]</button>
+    <!-- Control panel -->
+    <div class="control-panel" id="main-panel">
+        <div class="drag-handle" onclick="togglePanel()"></div>
+        <div class="panel-header-row">
+            <span class="title" id="active-tract-count">1,128 of 1,128 tracts shown</span>
+            <button class="btn-close-panel" onclick="togglePanel()">&times;</button>
         </div>
 
-        <!-- Modular Tab Selectors -->
-        <div class="hud-tabs">
-            <button class="hud-tab-btn active" id="tab-btn-engine" onclick="switchTab('engine')">[ENGINE]</button>
-            <button class="hud-tab-btn" id="tab-btn-limits" onclick="switchTab('limits')">[LIMITS]</button>
-            <button class="hud-tab-btn" id="tab-btn-ranks" onclick="switchTab('ranks')">[TOP_10]</button>
-            <button class="hud-tab-btn" id="tab-btn-layers" onclick="switchTab('layers')">[LAYERS]</button>
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-btn-weights" onclick="switchTab('weights')">Weights</button>
+            <button class="tab-btn" id="tab-btn-filters" onclick="switchTab('filters')">Filters</button>
+            <button class="tab-btn" id="tab-btn-ranks" onclick="switchTab('ranks')">Top matches</button>
+            <button class="tab-btn" id="tab-btn-layers" onclick="switchTab('layers')">Map layers</button>
         </div>
 
-        <!-- Tab 1: Engine -->
-        <div class="tab-pane active" id="tab-pane-engine">
-            <div class="hud-section-label">
-                <span>INTERACTION ALGORITHM</span>
+        <!-- Tab: Weights -->
+        <div class="tab-pane active" id="tab-pane-weights">
+            <div class="section-label"><span>How to rank tracts</span></div>
+            <div class="mode-grid">
+                <button class="mode-btn active" id="mode-linear" onclick="setMode('linear')">Balanced (weighted)</button>
+                <button class="mode-btn" id="mode-geom" onclick="setMode('geom')">Needs both (strict)</button>
+                <button class="mode-btn" id="mode-roi" onclick="setMode('roi')">Best value ratio</button>
+                <button class="mode-btn" id="mode-pareto" onclick="setMode('pareto')">Best-of options</button>
             </div>
-            <div class="mode-matrix">
-                <button class="mode-tile active" id="mode-linear" onclick="setMode('linear')">WEIGHTED_SUM</button>
-                <button class="mode-tile" id="mode-geom" onclick="setMode('geom')">GEOMETRIC_AND</button>
-                <button class="mode-tile" id="mode-roi" onclick="setMode('roi')">DENS_$ ROI</button>
-                <button class="mode-tile" id="mode-pareto" onclick="setMode('pareto')">PARETO_OPT</button>
-            </div>
-            <div class="mode-info-box" id="mode-desc">
-                WEIGHTED_SUM: Linear compensatory weighting across population density and 2BD market affordability.
+            <div class="mode-desc" id="mode-desc">
+                Balances density and affordability using the slider below. A tract can score well by being strong on just one side.
             </div>
 
-            <!-- Weight Slider -->
-            <div class="hud-slider-group" id="weight-slider-box">
-                <div class="slider-meta-row">
-                    <span class="meta-tag-rent">AFFORD: <span id="rent-pct">50%</span></span>
-                    <span class="meta-tag-dens">DENSITY: <span id="dens-pct">50%</span></span>
+            <div class="slider-block" id="weight-slider-box">
+                <div class="slider-label-row">
+                    <span>Affordability <span class="val" id="rent-pct">50%</span></span>
+                    <span>Density <span class="val" id="dens-pct">50%</span></span>
                 </div>
                 <input type="range" id="weight-slider" min="0" max="100" value="50" step="1" oninput="updateWeights(this.value)">
             </div>
         </div>
 
-        <!-- Tab 2: Limits -->
-        <div class="tab-pane" id="tab-pane-limits">
-            <div class="hud-slider-group">
-                <div class="hud-section-label">
-                    <span>HARD BOUNDARY CONSTRAINTS</span>
-                    <span style="color:var(--accent-red); cursor:pointer;" onclick="resetFilters()">[RESET]</span>
-                </div>
-                
-                <div class="filter-row">
-                    <div class="slider-meta-row">
-                        <span>MAX 2BD ASKING RENT:</span>
-                        <span class="meta-tag-rent" id="max-rent-val">NO LIMIT</span>
-                    </div>
-                    <input type="range" id="filter-max-rent" min="1600" max="4000" value="4000" step="50" oninput="updateThresholds()">
-                </div>
+        <!-- Tab: Filters -->
+        <div class="tab-pane" id="tab-pane-filters">
+            <div class="section-label">
+                <span>Narrow down the map</span>
+                <span class="filter-reset" onclick="resetFilters()">Reset</span>
+            </div>
 
-                <div class="filter-row">
-                    <div class="slider-meta-row">
-                        <span>MIN POPULATION DENSITY:</span>
-                        <span class="meta-tag-dens" id="min-dens-val">0 / SQ MI</span>
-                    </div>
-                    <input type="range" id="filter-min-dens" min="0" max="75000" value="0" step="1000" oninput="updateThresholds()">
+            <div class="slider-block">
+                <div class="slider-label-row">
+                    <span>Max 2BD rent</span>
+                    <span class="val" id="max-rent-val">No limit</span>
                 </div>
+                <input type="range" id="filter-max-rent" min="1600" max="4000" value="4000" step="50" oninput="updateThresholds()">
+            </div>
 
-                <div class="filter-row">
-                    <div class="slider-meta-row">
-                        <span>MAX DIST FROM ORIGIN:</span>
-                        <span style="color:var(--accent-cyan);" id="max-dist-val">NO LIMIT</span>
-                    </div>
-                    <input type="range" id="filter-max-dist" min="5" max="45" value="45" step="1" oninput="updateThresholds()">
+            <div class="slider-block">
+                <div class="slider-label-row">
+                    <span>Min density</span>
+                    <span class="val" id="min-dens-val">No minimum</span>
                 </div>
+                <input type="range" id="filter-min-dens" min="0" max="75000" value="0" step="1000" oninput="updateThresholds()">
+            </div>
+
+            <div class="slider-block">
+                <div class="slider-label-row">
+                    <span>Max distance from DC</span>
+                    <span class="val" id="max-dist-val">No limit</span>
+                </div>
+                <input type="range" id="filter-max-dist" min="5" max="45" value="45" step="1" oninput="updateThresholds()">
             </div>
         </div>
 
-        <!-- Tab 3: Ranks -->
+        <!-- Tab: Ranks -->
         <div class="tab-pane" id="tab-pane-ranks">
-            <div class="hud-section-label">
-                <span>ACTIVE TELEMETRY LEADERBOARD</span>
-            </div>
-            <div class="hud-leaderboard" id="top-leaderboard"></div>
+            <div class="section-label"><span>Top 10 under current settings</span></div>
+            <div class="leaderboard" id="top-leaderboard"></div>
         </div>
 
-        <!-- Tab 4: Layers -->
+        <!-- Tab: Layers -->
         <div class="tab-pane" id="tab-pane-layers">
-            <div class="hud-toggles">
-                <label class="hud-toggle-item">
-                    <span>CHOROPLETH TRACTS</span>
+            <div class="layer-list">
+                <label class="layer-item">
+                    <span>Census tracts</span>
                     <input type="checkbox" id="toggle-choropleth" checked onchange="toggleLayer('choropleth', this.checked)">
                 </label>
-                <label class="hud-toggle-item">
-                    <span>WMATA METRORAIL CONDUITS</span>
+                <label class="layer-item">
+                    <span>Metro lines</span>
                     <input type="checkbox" id="toggle-metro-lines" checked onchange="toggleLayer('metro-lines', this.checked)">
                 </label>
-                <label class="hud-toggle-item">
-                    <span>METRO TRANSIT NODES</span>
+                <label class="layer-item">
+                    <span>Metro stations</span>
                     <input type="checkbox" id="toggle-metro-stations" checked onchange="toggleLayer('metro-stations', this.checked)">
                 </label>
-                <label class="hud-toggle-item">
-                    <span>VECTOR LABELS (OVERLAY)</span>
+                <label class="layer-item">
+                    <span>Place labels</span>
                     <input type="checkbox" id="toggle-labels" checked onchange="toggleLayer('labels', this.checked)">
                 </label>
-                <label class="hud-toggle-item">
-                    <span>DISTANCE RINGS (5-30 MI)</span>
+                <label class="layer-item">
+                    <span>Distance rings</span>
                     <input type="checkbox" id="toggle-rings" checked onchange="toggleLayer('rings', this.checked)">
                 </label>
-                <label class="hud-toggle-item">
-                    <span>TOP 10 TARGET PINS</span>
+                <label class="layer-item">
+                    <span>Top 10 pins</span>
                     <input type="checkbox" id="toggle-pins" onchange="toggleLayer('pins', this.checked)">
                 </label>
             </div>
         </div>
 
-        <!-- Colorbar Scale -->
-        <div class="colorbar-box">
-            <div class="colorbar-track"></div>
-            <div class="colorbar-scale">
-                <span>0.0 // FILTERED</span>
-                <span>50.0 // MEDIAN</span>
-                <span>100.0 // OPTIMAL</span>
+        <div class="legend-box">
+            <div class="legend-bar"></div>
+            <div class="legend-scale">
+                <span>Lower match</span>
+                <span>Higher match</span>
             </div>
         </div>
     </div>
 
-    <!-- Desktop Telemetry HUD Card -->
-    <div class="telemetry-card" id="hover-card">
-        <h3>TELEMETRY READOUT</h3>
-        <div class="loc" id="hud-comm">SELECT_TARGET_TRACT</div>
-        <div class="hud-grid">
-            <div class="hud-cell hl-green">
-                <div class="k">MKT 2BD ASKING</div>
-                <div class="v" id="hud-rent">--</div>
+    <!-- Desktop info card -->
+    <div class="info-card" id="hover-card">
+        <div class="placeholder" id="info-placeholder">Hover or click a tract to see its details.</div>
+        <div id="info-body" style="display:none;">
+            <h3 id="info-title">--</h3>
+            <div class="sub" id="info-sub">--</div>
+            <div class="stat-grid">
+                <div class="stat-box rent">
+                    <div class="label">Est. 2BD rent</div>
+                    <div class="value" id="info-rent">--</div>
+                </div>
+                <div class="stat-box score">
+                    <div class="label">Score / rank</div>
+                    <div class="value" id="info-score">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Density</div>
+                    <div class="value" id="info-density">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Distance</div>
+                    <div class="value" id="info-dist">--</div>
+                </div>
             </div>
-            <div class="hud-cell hl-cyan">
-                <div class="k">SCORE // RANK</div>
-                <div class="v" id="hud-score">--</div>
-            </div>
-            <div class="hud-cell">
-                <div class="k">POP DENSITY</div>
-                <div class="v" id="hud-density">--</div>
-            </div>
-            <div class="hud-cell">
-                <div class="k">DIST FROM MALL</div>
-                <div class="v" id="hud-dist">--</div>
-            </div>
-            <div class="hud-cell">
-                <div class="k">2020 CENSUS POP</div>
-                <div class="v" id="hud-pop">--</div>
-            </div>
-            <div class="hud-cell">
-                <div class="k">SURVEY RENT</div>
-                <div class="v" id="hud-inplace">--</div>
-            </div>
+            <button class="btn-copy" id="info-copy-btn" onclick="copyActiveTarget()">Copy details</button>
         </div>
-        <button class="btn-export-hud" id="hud-copy-btn" onclick="copyActiveTarget()">[ EXPORT_TELEMETRY // COPY ]</button>
     </div>
 
-    <!-- Mobile Bottom HUD Sheet -->
-    <div class="mobile-bottom-hud" id="mobile-sheet">
-        <div class="sheet-drag-line" onclick="closeMobileSheet()"></div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <div style="font-weight:700; color:var(--accent-cyan); font-size:12px;" id="sheet-comm">TARGET_TRACT</div>
-            <button onclick="closeMobileSheet()" style="background:transparent; border:none; color:var(--text-muted); font-size:14px; font-family:var(--font-mono);">[X]</button>
+    <!-- Mobile bottom sheet -->
+    <div class="mobile-sheet" id="mobile-sheet">
+        <div class="drag-handle" onclick="closeMobileSheet()"></div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+            <div>
+                <h3 id="sheet-title" style="margin:0; font-size:14.5px; font-weight:700;">--</h3>
+                <div class="sub" id="sheet-sub" style="margin-bottom:0;">--</div>
+            </div>
+            <button onclick="closeMobileSheet()" style="background:transparent; border:none; font-size:18px; color:var(--text-muted); padding:0 4px;">&times;</button>
         </div>
-        <div class="hud-grid">
-            <div class="hud-cell hl-green">
-                <div class="k">MKT 2BD ASKING</div>
-                <div class="v" id="sheet-rent">--</div>
+        <div class="stat-grid">
+            <div class="stat-box rent">
+                <div class="label">Est. 2BD rent</div>
+                <div class="value" id="sheet-rent">--</div>
             </div>
-            <div class="hud-cell hl-cyan">
-                <div class="k">SCORE // RANK</div>
-                <div class="v" id="sheet-score">--</div>
+            <div class="stat-box score">
+                <div class="label">Score / rank</div>
+                <div class="value" id="sheet-score">--</div>
             </div>
-            <div class="hud-cell">
-                <div class="k">POP DENSITY</div>
-                <div class="v" id="sheet-density">--</div>
+            <div class="stat-box">
+                <div class="label">Density</div>
+                <div class="value" id="sheet-density">--</div>
             </div>
-            <div class="hud-cell">
-                <div class="k">DIST FROM ORIGIN</div>
-                <div class="v" id="sheet-dist">--</div>
+            <div class="stat-box">
+                <div class="label">Distance</div>
+                <div class="value" id="sheet-dist">--</div>
             </div>
         </div>
-        <button class="btn-export-hud" id="sheet-copy-btn" onclick="copyActiveTarget()">[ EXPORT_TELEMETRY // COPY ]</button>
+        <button class="btn-copy" id="sheet-copy-btn" onclick="copyActiveTarget()">Copy details</button>
     </div>
 
     <script>
@@ -748,7 +667,6 @@
             L.control.zoom({ position: 'bottomright' }).addTo(map);
         }
 
-        // Technical Panes Layering
         map.createPane('choroplethPane');
         map.getPane('choroplethPane').style.zIndex = 350;
 
@@ -762,64 +680,62 @@
         map.getPane('labelsPane').style.zIndex = 650;
         map.getPane('labelsPane').style.pointerEvents = 'none';
 
-        // Dark Technical Basemap
-        const darkBaseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CartoDB & OpenStreetMap',
+        const baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CartoDB, OpenStreetMap contributors',
             maxZoom: 19
         }).addTo(map);
 
-        const labelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+        const labelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
             pane: 'labelsPane'
         }).addTo(map);
 
-        // Radar Distance Rings
         const ringsGroup = L.layerGroup().addTo(map);
         [5, 10, 15, 20, 25, 30].forEach(mi => {
             L.circle(DC_CENTER, {
                 radius: mi * 1609.34,
-                color: '#00e5ff',
-                weight: 1.0,
+                color: '#6b6b66',
+                weight: 1,
                 fill: false,
-                dashArray: '3, 6',
-                opacity: 0.45
-            }).bindTooltip(`RANGE_RING: ${mi} MI`, { sticky: true }).addTo(ringsGroup);
+                dashArray: '4, 5',
+                opacity: 0.5
+            }).bindTooltip(`${mi} miles from downtown DC`).addTo(ringsGroup);
         });
 
         L.circleMarker(DC_CENTER, {
-            radius: 4,
-            color: '#00e5ff',
-            fillColor: '#00e5ff',
+            radius: 5,
+            color: '#2b6cb0',
+            fillColor: '#2b6cb0',
             fillOpacity: 1,
             weight: 1
-        }).bindTooltip("ORIGIN_DATUM: NATIONAL MALL").addTo(ringsGroup);
+        }).bindTooltip("Downtown DC (National Mall)").addTo(ringsGroup);
 
-        // WMATA Conduit Vectors
         const metroColors = {
-            'red': '#e11938',
-            'silver': '#a0aab2',
-            'orange': '#ea7125',
-            'blue': '#0072ce',
-            'yellow': '#e5a823',
-            'green': '#009639'
+            'red': '#bf1e3c',
+            'silver': '#9a9a94',
+            'orange': '#e07b28',
+            'blue': '#2b6cb0',
+            'yellow': '#d4a72c',
+            'green': '#2f7d5a'
         };
 
         const metroLinesLayer = L.geoJSON(metroLinesData, {
             pane: 'metroLinesPane',
             style: function(feature) {
                 const name = (feature.properties.NAME || '').toLowerCase();
-                const color = metroColors[name] || '#8b949e';
+                const color = metroColors[name] || '#6b6b66';
                 return {
                     color: color,
-                    weight: 3.5,
-                    opacity: 0.95,
-                    lineCap: 'square',
-                    lineJoin: 'miter'
+                    weight: 3,
+                    opacity: 0.9,
+                    lineCap: 'round',
+                    lineJoin: 'round'
                 };
             },
             onEachFeature: function(feature, layer) {
-                const lineName = (feature.properties.NAME || 'METRO').toUpperCase();
-                layer.bindTooltip(`WMATA_CONDUIT // ${lineName}_LINE`, { sticky: true });
+                const lineName = (feature.properties.NAME || 'Metro');
+                const cap = lineName.charAt(0).toUpperCase() + lineName.slice(1);
+                layer.bindTooltip(`${cap} Line`, { sticky: true });
             }
         }).addTo(map);
 
@@ -827,10 +743,10 @@
             pane: 'metroStationsPane',
             pointToLayer: function(feature, latlng) {
                 const lineName = (feature.properties.LINE || '').toLowerCase();
-                const color = metroColors[lineName] || '#00e5ff';
+                const color = metroColors[lineName] || '#2b6cb0';
                 return L.circleMarker(latlng, {
                     radius: 3.5,
-                    fillColor: '#0a0c10',
+                    fillColor: '#ffffff',
                     color: color,
                     weight: 2,
                     opacity: 1,
@@ -839,15 +755,15 @@
             },
             onEachFeature: function(feature, layer) {
                 const p = feature.properties;
-                const sName = (p.NAME || 'STATION').toUpperCase();
-                const line = (p.LINE || '').toUpperCase();
-                layer.bindTooltip(`NODE: ${sName} [${line}]`);
+                const sName = p.NAME || 'Station';
+                const line = p.LINE || '';
+                const cap = line.charAt(0).toUpperCase() + line.slice(1);
+                layer.bindTooltip(`${sName} (${cap} Line)`);
             }
         }).addTo(map);
 
         const pinsGroup = L.layerGroup();
 
-        // Technical Spectrum Palette
         const palette = [
             { p: 0.00, r: 255, g: 255, b: 204 },
             { p: 0.25, r: 161, g: 218, b: 180 },
@@ -871,10 +787,10 @@
         }
 
         const modeDescriptions = {
-            'linear': 'WEIGHTED_SUM: Linear compensatory weighting across population density and 2BD market affordability.',
-            'geom': 'GEOMETRIC_AND: Non-compensatory geometric product. Strictly penalizes polarized outliers.',
-            'roi': 'DENS_$ ROI: Efficiency ratio measuring population density output per unit rental dollar.',
-            'pareto': 'PARETO_OPT: Non-dominated boundary identification. Isolates optimal selections at every rent tier.'
+            'linear': 'Balances density and affordability using the slider below. A tract can score well by being strong on just one side.',
+            'geom': 'Requires a tract to be reasonably good on both density and affordability. Extreme scores on only one side are penalized.',
+            'roi': 'Ranks tracts by how much density you get per rental dollar. Ignores the weight slider.',
+            'pareto': 'Shows only tracts where no other tract is both denser and cheaper. Ignores the weight slider.'
         };
 
         let currentMode = 'linear';
@@ -887,7 +803,7 @@
         let scoreMap = new Map();
         let rankMap = new Map();
         let passFilterMap = new Map();
-        let activeTargetGeoid = "11001004703"; // default to top match
+        let activeTargetGeoid = null;
 
         function checkThresholds(p) {
             if (maxRentThreshold !== Infinity && p.rent_2bd_mkt > maxRentThreshold) return false;
@@ -933,14 +849,14 @@
                 }
             });
 
-            document.getElementById('active-tract-count').innerText = `${activeCount} / 1,128 ACTIVE`;
+            document.getElementById('active-tract-count').innerText = `${activeCount.toLocaleString()} of 1,128 tracts shown`;
+            document.getElementById('mobile-active-count').innerText = `${activeCount.toLocaleString()} tracts shown`;
 
             qualified.sort((a, b) => b.score - a.score);
             qualified.forEach((item, index) => {
                 rankMap.set(item.geoid, index + 1);
             });
 
-            // Refresh Pins Layer for Top 10 Qualified Hotspots
             pinsGroup.clearLayers();
             qualified.slice(0, 10).forEach((item, i) => {
                 const geom = item.feature.geometry;
@@ -954,24 +870,23 @@
                 }
                 L.circleMarker([lat, lon], {
                     radius: 6,
-                    color: '#00e5ff',
-                    weight: 1.5,
-                    fillColor: '#ff3838',
+                    color: '#ffffff',
+                    weight: 2,
+                    fillColor: '#b0492b',
                     fillOpacity: 1
-                }).bindTooltip(`TARGET #${i+1}: ${item.name.split(',')[0]} [${item.rent}]`).addTo(pinsGroup);
+                }).bindTooltip(`#${i+1}: ${item.name.split(',')[0]} ($${item.rent.replace('$','')}/mo)`).addTo(pinsGroup);
             });
 
-            // Update Leaderboard
             const board = document.getElementById('top-leaderboard');
             let boardHtml = '';
             if (qualified.length === 0) {
-                boardHtml = '<div style="color:var(--accent-red); font-size:10.5px; padding:6px 0;">NO QUALIFYING VECTORS IDENTIFIED.</div>';
+                boardHtml = '<div style="color:var(--accent-warn); font-size:12.5px; padding:8px 0;">No tracts match your current filters. Try loosening a limit.</div>';
             } else {
                 qualified.slice(0, 10).forEach((item, i) => {
                     boardHtml += `
                         <div class="leader-row" onclick="zoomToTract('${item.geoid}')">
-                            <span><b>[#${i+1}]</b> ${item.name.split(',')[0]} (${item.tract})</span>
-                            <span style="color:var(--accent-cyan); font-weight:700;">${item.score.toFixed(1)}</span>
+                            <span><span class="rank">#${i+1}</span><span class="name">${item.name.split(',')[0]}</span></span>
+                            <span class="rent">${item.rent}/mo</span>
                         </div>
                     `;
                 });
@@ -984,11 +899,11 @@
             const passes = passFilterMap.get(geoid);
             if (!passes) {
                 return {
-                    fillColor: '#161b22',
+                    fillColor: '#d8d8d3',
                     weight: 0.3,
-                    opacity: 0.2,
-                    color: '#30363d',
-                    fillOpacity: 0.1,
+                    opacity: 0.3,
+                    color: '#b8b8b2',
+                    fillOpacity: 0.25,
                     pane: 'choroplethPane'
                 };
             }
@@ -996,9 +911,9 @@
             return {
                 fillColor: getColor(score),
                 weight: 0.6,
-                opacity: 0.7,
-                color: '#30363d',
-                fillOpacity: 0.75,
+                opacity: 0.8,
+                color: '#6b6b66',
+                fillOpacity: 0.78,
                 pane: 'choroplethPane'
             };
         }
@@ -1008,44 +923,45 @@
             const geoid = layer.feature.properties.geoid;
             const passes = passFilterMap.get(geoid);
             layer.setStyle({
-                weight: 2.0,
-                color: passes ? '#00e5ff' : '#8b949e',
-                fillOpacity: passes ? 0.95 : 0.2
+                weight: 2.2,
+                color: passes ? '#2b6cb0' : '#9a9a94',
+                fillOpacity: passes ? 0.9 : 0.3
             });
             layer.bringToFront();
-            updateTelemetryHUD(layer.feature.properties);
+            updateInfoCard(layer.feature.properties);
         }
 
         function resetHighlight(e) {
             geojsonLayer.resetStyle(e.target);
         }
 
-        function updateTelemetryHUD(p) {
+        function updateInfoCard(p) {
             activeTargetGeoid = p.geoid;
             const passes = passFilterMap.get(p.geoid);
             const score = scoreMap.get(p.geoid);
             const rank = rankMap.get(p.geoid);
 
-            const scoreStr = passes ? `${score.toFixed(1)} / 100 [#${rank}]` : 'FILTERED';
+            const scoreStr = passes ? `${score.toFixed(1)} (#${rank})` : 'Filtered out';
 
-            document.getElementById('hud-comm').innerText = `${p.community.toUpperCase()} // TRACT ${p.tract}`;
-            document.getElementById('hud-rent').innerText = p.rent_str;
-            document.getElementById('hud-score').innerText = scoreStr;
-            document.getElementById('hud-density').innerText = p.density_str + ' / SQ MI';
-            document.getElementById('hud-dist').innerText = p.dist_dc_mi + ' MI';
-            document.getElementById('hud-pop').innerText = p.pop_str;
-            document.getElementById('hud-inplace').innerText = p.rent_inplace_str;
+            document.getElementById('info-placeholder').style.display = 'none';
+            document.getElementById('info-body').style.display = 'block';
+            document.getElementById('info-title').innerText = p.community;
+            document.getElementById('info-sub').innerText = `Tract ${p.tract} • ${p.county}, ${p.state}`;
+            document.getElementById('info-rent').innerText = p.rent_str + '/mo';
+            document.getElementById('info-score').innerText = scoreStr;
+            document.getElementById('info-density').innerText = p.density_str + '/sq mi';
+            document.getElementById('info-dist').innerText = p.dist_dc_mi + ' mi';
 
-            // Mobile Sheet update
-            document.getElementById('sheet-comm').innerText = `${p.community.toUpperCase()} (${p.tract})`;
-            document.getElementById('sheet-rent').innerText = p.rent_str;
+            document.getElementById('sheet-title').innerText = p.community;
+            document.getElementById('sheet-sub').innerText = `Tract ${p.tract} • ${p.county}, ${p.state}`;
+            document.getElementById('sheet-rent').innerText = p.rent_str + '/mo';
             document.getElementById('sheet-score').innerText = scoreStr;
-            document.getElementById('sheet-density').innerText = p.density_str + ' / SQ MI';
-            document.getElementById('sheet-dist').innerText = p.dist_dc_mi + ' MI';
+            document.getElementById('sheet-density').innerText = p.density_str + '/sq mi';
+            document.getElementById('sheet-dist').innerText = p.dist_dc_mi + ' mi';
         }
 
         function openMobileSheet(p) {
-            updateTelemetryHUD(p);
+            updateInfoCard(p);
             document.getElementById('mobile-sheet').classList.add('open');
         }
 
@@ -1063,22 +979,17 @@
             const score = scoreMap.get(activeTargetGeoid)?.toFixed(1) || '--';
             const rank = rankMap.get(activeTargetGeoid) || '--';
 
-            const payload = `// DC_AREA_EXPLORER // TARGET_TELEMETRY
-LOCALITY: ${p.community}
-JURISDICTION: ${p.county}, ${p.state}
-TRACT_FIPS: ${p.geoid} (Tract ${p.tract})
-MKT_2BD_ASKING_RENT: ${p.rent_str} / MO
-IN_PLACE_SURVEY_RENT: ${p.rent_inplace_str} / MO
-POP_DENSITY: ${p.density_str} RESIDENTS / SQ MI
-CENSUS_2020_POP: ${p.pop_str}
-LAND_AREA: ${p.area_sq_mi} SQ MI
-DISTANCE_FROM_ORIGIN: ${p.dist_dc_mi} MI
-COMPOSITE_SCORE: ${score} / 100 [RANK: #${rank} OF ${rankMap.size} ACTIVE]`;
+            const payload = `${p.community}
+Tract ${p.tract} • ${p.county}, ${p.state}
+Est. 2BD rent: ${p.rent_str}/mo (survey-based in-place rent: ${p.rent_inplace_str}/mo)
+Population density: ${p.density_str} per sq mi
+2020 population: ${p.pop_str}
+Land area: ${p.area_sq_mi} sq mi
+Distance from downtown DC: ${p.dist_dc_mi} mi
+Score: ${score} (rank #${rank} of ${rankMap.size} shown)`;
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(payload).then(() => {
-                    setCopiedState();
-                });
+                navigator.clipboard.writeText(payload).then(setCopiedState);
             } else {
                 const ta = document.createElement("textarea");
                 ta.value = payload;
@@ -1091,16 +1002,14 @@ COMPOSITE_SCORE: ${score} / 100 [RANK: #${rank} OF ${rankMap.size} ACTIVE]`;
         }
 
         function setCopiedState() {
-            const btn1 = document.getElementById('hud-copy-btn');
-            const btn2 = document.getElementById('sheet-copy-btn');
-            [btn1, btn2].forEach(b => {
+            [document.getElementById('info-copy-btn'), document.getElementById('sheet-copy-btn')].forEach(b => {
                 if (b) {
-                    b.innerText = "[ TELEMETRY_COPIED_TO_CLIPBOARD ]";
+                    b.innerText = "Copied";
                     b.classList.add("copied");
                     setTimeout(() => {
-                        b.innerText = "[ EXPORT_TELEMETRY // COPY ]";
+                        b.innerText = "Copy details";
                         b.classList.remove("copied");
-                    }, 2000);
+                    }, 1800);
                 }
             });
         }
@@ -1114,22 +1023,22 @@ COMPOSITE_SCORE: ${score} / 100 [RANK: #${rank} OF ${rankMap.size} ACTIVE]`;
                     if (window.innerWidth < 768) {
                         openMobileSheet(p);
                     } else {
-                        updateTelemetryHUD(p);
+                        updateInfoCard(p);
                         const passes = passFilterMap.get(p.geoid);
                         const score = scoreMap.get(p.geoid)?.toFixed(1) || '--';
                         const rank = rankMap.get(p.geoid) || '--';
-                        
+
                         const popupHtml = `
-                            <div style="font-family:var(--font-mono); font-size:11px; padding:2px;">
-                                <div style="font-size:12px; font-weight:700; color:#00e5ff;">${p.community.toUpperCase()}</div>
-                                <div style="color:#8b949e; margin-bottom:6px;">TRACT_${p.tract} // ${p.county}</div>
-                                <div>MKT_2BD: <b style="color:#00e575;">${p.rent_str}</b></div>
-                                <div>DENSITY: <b>${p.density_str} / SQ MI</b></div>
-                                <div>DISTANCE: <b>${p.dist_dc_mi} MI</b></div>
-                                <div>SCORE: <b style="color:#00e5ff;">${passes ? `${score} [#${rank}]` : 'FILTERED'}</b></div>
+                            <div style="font-family:-apple-system,sans-serif; font-size:12.5px; min-width:200px;">
+                                <div style="font-weight:700; font-size:13.5px; margin-bottom:2px;">${p.community}</div>
+                                <div style="color:#6b6b66; margin-bottom:6px;">Tract ${p.tract} • ${p.county}</div>
+                                <div>Est. 2BD rent: <b style="color:#2f7d5a;">${p.rent_str}/mo</b></div>
+                                <div>Density: <b>${p.density_str}/sq mi</b></div>
+                                <div>Distance: <b>${p.dist_dc_mi} mi</b></div>
+                                <div>Score: <b>${passes ? `${score} (#${rank})` : 'Filtered out'}</b></div>
                             </div>
                         `;
-                        layer.bindPopup(popupHtml, { maxWidth: 280 }).openPopup();
+                        layer.bindPopup(popupHtml, { maxWidth: 260 }).openPopup();
                     }
                 }
             });
@@ -1141,7 +1050,7 @@ COMPOSITE_SCORE: ${score} / 100 [RANK: #${rank} OF ${rankMap.size} ACTIVE]`;
                     map.fitBounds(layer.getBounds(), { maxZoom: 14 });
                     if (window.innerWidth < 768) {
                         openMobileSheet(layer.feature.properties);
-                        toggleControlPanel();
+                        togglePanel();
                     } else {
                         layer.fire('click');
                     }
@@ -1150,21 +1059,19 @@ COMPOSITE_SCORE: ${score} / 100 [RANK: #${rank} OF ${rankMap.size} ACTIVE]`;
         }
 
         function switchTab(tabId) {
-            document.querySelectorAll('.hud-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
             document.getElementById('tab-btn-' + tabId)?.classList.add('active');
             document.getElementById('tab-pane-' + tabId)?.classList.add('active');
         }
 
-        function toggleControlPanel() {
-            const panel = document.getElementById('main-control-panel');
-            panel.classList.toggle('open');
+        function togglePanel() {
+            document.getElementById('main-panel').classList.toggle('open');
         }
 
         function setMode(mode) {
             currentMode = mode;
-            document.querySelectorAll('.mode-tile').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('mode-' + mode)?.classList.add('active');
             document.getElementById('mode-desc').innerText = modeDescriptions[mode];
 
@@ -1193,9 +1100,9 @@ COMPOSITE_SCORE: ${score} / 100 [RANK: #${rank} OF ${rankMap.size} ACTIVE]`;
             minDensityThreshold = minDensInput;
             maxDistThreshold = maxDistInput >= 45 ? Infinity : maxDistInput;
 
-            document.getElementById('max-rent-val').innerText = maxRentInput >= 4000 ? 'NO LIMIT' : `<= $${maxRentInput.toLocaleString()}`;
-            document.getElementById('min-dens-val').innerText = minDensInput === 0 ? '0 / SQ MI' : `>= ${minDensInput.toLocaleString()}`;
-            document.getElementById('max-dist-val').innerText = maxDistInput >= 45 ? 'NO LIMIT' : `<= ${maxDistInput} MI`;
+            document.getElementById('max-rent-val').innerText = maxRentInput >= 4000 ? 'No limit' : `up to $${maxRentInput.toLocaleString()}`;
+            document.getElementById('min-dens-val').innerText = minDensInput === 0 ? 'No minimum' : `at least ${minDensInput.toLocaleString()}/sq mi`;
+            document.getElementById('max-dist-val').innerText = maxDistInput >= 45 ? 'No limit' : `up to ${maxDistInput} mi`;
 
             recomputeAll();
             geojsonLayer.setStyle(styleFeature);
