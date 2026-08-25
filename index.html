@@ -325,36 +325,43 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            width: 300px;
+            width: 320px;
             max-width: calc(100vw - 32px);
             padding: 16px;
         }
         .info-card .placeholder {
             font-size: 13px;
             color: var(--text-muted);
+            line-height: 1.4;
         }
         .info-card h3 {
-            margin: 0 0 2px 0;
-            font-size: 14.5px;
+            margin: 0 0 3px 0;
+            font-size: 15px;
             font-weight: 700;
             color: var(--text);
+            line-height: 1.3;
         }
         .info-card .sub {
             font-size: 12px;
             color: var(--text-muted);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
         }
         .stat-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            gap: 7px;
             margin-bottom: 12px;
         }
         .stat-box {
             background: var(--bg-subtle);
             border: 1px solid var(--border);
-            padding: 8px 10px;
+            padding: 7px 9px;
             border-radius: 6px;
+        }
+        .stat-box.full {
+            grid-column: 1 / -1;
         }
         .stat-box .label {
             font-size: 10.5px;
@@ -362,7 +369,7 @@
             margin-bottom: 2px;
         }
         .stat-box .value {
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 700;
             color: var(--text);
         }
@@ -592,26 +599,38 @@
 
     <!-- Desktop info card -->
     <div class="info-card" id="hover-card">
-        <div class="placeholder" id="info-placeholder">Hover or click a tract to see its details.</div>
+        <div class="placeholder" id="info-placeholder">Hover or click any census tract on the map to view detailed neighborhood, rent, and density data.</div>
         <div id="info-body" style="display:none;">
             <h3 id="info-title">--</h3>
             <div class="sub" id="info-sub">--</div>
             <div class="stat-grid">
                 <div class="stat-box rent">
-                    <div class="label">Est. 2BD rent</div>
+                    <div class="label">Est. 2BD market rent</div>
                     <div class="value" id="info-rent">--</div>
                 </div>
                 <div class="stat-box score">
-                    <div class="label">Score / rank</div>
+                    <div class="label">Match score / rank</div>
                     <div class="value" id="info-score">--</div>
                 </div>
                 <div class="stat-box">
-                    <div class="label">Density</div>
+                    <div class="label">Population density</div>
                     <div class="value" id="info-density">--</div>
                 </div>
                 <div class="stat-box">
-                    <div class="label">Distance</div>
+                    <div class="label">Total population</div>
+                    <div class="value" id="info-pop">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Distance to Mall</div>
                     <div class="value" id="info-dist">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Renter percentage</div>
+                    <div class="value" id="info-renter">--</div>
+                </div>
+                <div class="stat-box full">
+                    <div class="label">In-place survey rent (sitting tenants)</div>
+                    <div class="value" id="info-inplace" style="font-size:12.5px; font-weight:600; color:var(--text-muted);">--</div>
                 </div>
             </div>
             <button class="btn-copy" id="info-copy-btn" onclick="copyActiveTarget()">Copy details</button>
@@ -623,14 +642,14 @@
         <div class="drag-handle" onclick="closeMobileSheet()"></div>
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
             <div>
-                <h3 id="sheet-title" style="margin:0; font-size:14.5px; font-weight:700;">--</h3>
-                <div class="sub" id="sheet-sub" style="margin-bottom:0;">--</div>
+                <h3 id="sheet-title" style="margin:0; font-size:15px; font-weight:700;">--</h3>
+                <div class="sub" id="sheet-sub" style="margin-bottom:0; font-size:12px; color:var(--text-muted);">--</div>
             </div>
-            <button onclick="closeMobileSheet()" style="background:transparent; border:none; font-size:18px; color:var(--text-muted); padding:0 4px;">&times;</button>
+            <button onclick="closeMobileSheet()" style="background:transparent; border:none; font-size:20px; color:var(--text-muted); padding:0 4px; line-height:1;">&times;</button>
         </div>
         <div class="stat-grid">
             <div class="stat-box rent">
-                <div class="label">Est. 2BD rent</div>
+                <div class="label">Est. 2BD market rent</div>
                 <div class="value" id="sheet-rent">--</div>
             </div>
             <div class="stat-box score">
@@ -638,12 +657,20 @@
                 <div class="value" id="sheet-score">--</div>
             </div>
             <div class="stat-box">
-                <div class="label">Density</div>
+                <div class="label">Population density</div>
                 <div class="value" id="sheet-density">--</div>
             </div>
             <div class="stat-box">
-                <div class="label">Distance</div>
+                <div class="label">Total population</div>
+                <div class="value" id="sheet-pop">--</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">Distance to DC</div>
                 <div class="value" id="sheet-dist">--</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">Renter share</div>
+                <div class="value" id="sheet-renter">--</div>
             </div>
         </div>
         <button class="btn-copy" id="sheet-copy-btn" onclick="copyActiveTarget()">Copy details</button>
@@ -941,23 +968,28 @@
             const score = scoreMap.get(p.geoid);
             const rank = rankMap.get(p.geoid);
 
-            const scoreStr = passes ? `${score.toFixed(1)} (#${rank})` : 'Filtered out';
+            const scoreStr = passes ? `${score.toFixed(1)} (rank #${rank} of ${rankMap.size})` : 'Filtered out by current limits';
 
             document.getElementById('info-placeholder').style.display = 'none';
             document.getElementById('info-body').style.display = 'block';
             document.getElementById('info-title').innerText = p.community;
-            document.getElementById('info-sub').innerText = `Tract ${p.tract} • ${p.county}, ${p.state}`;
+            document.getElementById('info-sub').innerText = `Census Tract ${p.tract} • ${p.county}, ${p.state} (${p.area_sq_mi} sq mi)`;
             document.getElementById('info-rent').innerText = p.rent_str + '/mo';
             document.getElementById('info-score').innerText = scoreStr;
             document.getElementById('info-density').innerText = p.density_str + '/sq mi';
-            document.getElementById('info-dist').innerText = p.dist_dc_mi + ' mi';
+            document.getElementById('info-pop').innerText = p.pop_str + ' residents';
+            document.getElementById('info-dist').innerText = p.dist_dc_mi + ' mi from Mall';
+            document.getElementById('info-renter').innerText = p.pct_renter + ' renter units';
+            document.getElementById('info-inplace').innerText = p.rent_inplace_str + '/mo';
 
             document.getElementById('sheet-title').innerText = p.community;
-            document.getElementById('sheet-sub').innerText = `Tract ${p.tract} • ${p.county}, ${p.state}`;
+            document.getElementById('sheet-sub').innerText = `Census Tract ${p.tract} • ${p.county}, ${p.state}`;
             document.getElementById('sheet-rent').innerText = p.rent_str + '/mo';
-            document.getElementById('sheet-score').innerText = scoreStr;
+            document.getElementById('sheet-score').innerText = passes ? `${score.toFixed(1)} (#${rank})` : 'Filtered out';
             document.getElementById('sheet-density').innerText = p.density_str + '/sq mi';
+            document.getElementById('sheet-pop').innerText = p.pop_str + ' residents';
             document.getElementById('sheet-dist').innerText = p.dist_dc_mi + ' mi';
+            document.getElementById('sheet-renter').innerText = p.pct_renter;
         }
 
         function openMobileSheet(p) {
@@ -1029,13 +1061,33 @@ Score: ${score} (rank #${rank} of ${rankMap.size} shown)`;
                         const rank = rankMap.get(p.geoid) || '--';
 
                         const popupHtml = `
-                            <div style="font-family:-apple-system,sans-serif; font-size:12.5px; min-width:200px;">
-                                <div style="font-weight:700; font-size:13.5px; margin-bottom:2px;">${p.community}</div>
-                                <div style="color:#6b6b66; margin-bottom:6px;">Tract ${p.tract} • ${p.county}</div>
-                                <div>Est. 2BD rent: <b style="color:#2f7d5a;">${p.rent_str}/mo</b></div>
-                                <div>Density: <b>${p.density_str}/sq mi</b></div>
-                                <div>Distance: <b>${p.dist_dc_mi} mi</b></div>
-                                <div>Score: <b>${passes ? `${score} (#${rank})` : 'Filtered out'}</b></div>
+                            <div style="font-family:-apple-system,sans-serif; font-size:12.5px; min-width:240px; padding:2px;">
+                                <div style="font-weight:700; font-size:14px; margin-bottom:2px; color:#0f172a;">${p.community}</div>
+                                <div style="color:#6b6b66; font-size:11.5px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid #e2e8f0;">Census Tract ${p.tract} • ${p.county}, ${p.state}</div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                                    <span style="color:#6b6b66;">Est. 2BD market rent:</span>
+                                    <b style="color:#2f7d5a;">${p.rent_str}/mo</b>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                                    <span style="color:#6b6b66;">Population density:</span>
+                                    <b>${p.density_str} / sq mi</b>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                                    <span style="color:#6b6b66;">Total population:</span>
+                                    <b>${p.pop_str}</b>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                                    <span style="color:#6b6b66;">Distance to Mall:</span>
+                                    <b>${p.dist_dc_mi} mi</b>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                                    <span style="color:#6b6b66;">Renter share:</span>
+                                    <b>${p.pct_renter}</b>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-top:6px; padding-top:6px; border-top:1px dashed #cbd5e1;">
+                                    <span style="color:#6b6b66;">Score / rank:</span>
+                                    <b style="color:#2b6cb0;">${passes ? `${score} (rank #${rank})` : 'Filtered out'}</b>
+                                </div>
                             </div>
                         `;
                         layer.bindPopup(popupHtml, { maxWidth: 260 }).openPopup();
