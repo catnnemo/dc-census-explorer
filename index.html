@@ -1004,15 +1004,18 @@
         function buildZillowUrl(p) {
             const lat = p.lat || 38.9072;
             const lon = p.lon || -77.0369;
-            // Search centered on tract centroid: 2-bedroom rentals within 0.5 miles
+            // Wide map bounds (~4 miles in each direction) so Zillow returns all
+            // listings covering the full neighborhood instead of anchoring to one ZIP.
+            const dLat = 4.0 / 69.0;          // ~4 miles north/south
+            const dLon = 4.0 / (69.0 * 0.74); // ~4 miles east/west at this latitude
             const zillow = new URL('https://www.zillow.com/homes/for_rent/');
             zillow.searchParams.set('searchQueryState', JSON.stringify({
                 isMapVisible: true,
                 mapBounds: {
-                    west: lon - 0.0105,
-                    east: lon + 0.0105,
-                    south: lat - 0.0078,
-                    north: lat + 0.0078
+                    west: lon - dLon,
+                    east: lon + dLon,
+                    south: lat - dLat,
+                    north: lat + dLat
                 },
                 filterState: {
                     bd: { value: '2' },
@@ -1025,9 +1028,8 @@
                     nc: { value: false }
                 },
                 isListVisible: true,
-                mapZoom: 15
+                mapZoom: 11
             }));
-            zillow.searchParams.set('url', '');
             return zillow.toString();
         }
 
