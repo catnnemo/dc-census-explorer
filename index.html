@@ -660,9 +660,6 @@
                     <div class="value" id="info-inplace" style="font-size:12.5px; font-weight:600; color:var(--text-muted);">--</div>
                 </div>
             </div>
-            <a class="btn-zillow" id="info-zillow-btn" href="#" target="_blank" rel="noopener noreferrer">
-                <span class="zillow-logo">Z</span> 2 BD Rentals Nearby
-            </a>
             <button class="btn-copy" id="info-copy-btn" onclick="copyActiveTarget()">Copy details</button>
         </div>
     </div>
@@ -998,7 +995,6 @@
                 fillOpacity: passes ? 0.9 : 0.3
             });
             layer.bringToFront();
-            updateInfoCard(layer.feature.properties);
         }
 
         function resetHighlight(e) {
@@ -1037,9 +1033,7 @@
 
         function updateZillowLinks(p) {
             const url = buildZillowUrl(p);
-            const desktop = document.getElementById('info-zillow-btn');
             const mobile = document.getElementById('sheet-zillow-btn');
-            if (desktop) desktop.href = url;
             if (mobile) mobile.href = url;
         }
 
@@ -1135,10 +1129,11 @@ Score: ${score} (rank #${rank} of ${rankMap.size} shown)`;
                 mouseout: resetHighlight,
                 click: function(e) {
                     const p = feature.properties;
+                    updateInfoCard(p);
+
                     if (window.innerWidth < 768) {
                         openMobileSheet(p);
                     } else {
-                        updateInfoCard(p);
                         const passes = passFilterMap.get(p.geoid);
                         const score = scoreMap.get(p.geoid)?.toFixed(1) || '--';
                         const rank = rankMap.get(p.geoid) || '--';
@@ -1171,6 +1166,9 @@ Score: ${score} (rank #${rank} of ${rankMap.size} shown)`;
                                     <span style="color:#6b6b66;">Score / rank:</span>
                                     <b style="color:#2b6cb0;">${passes ? `${score} (rank #${rank})` : 'Filtered out'}</b>
                                 </div>
+                                <a href="${buildZillowUrl(p)}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:7px; background:#0d7a4e; color:#ffffff; padding:8px 10px; border-radius:6px; font-weight:600; font-size:12.5px; margin-top:9px; text-decoration:none;">
+                                    Z 2 BD Rentals Nearby
+                                </a>
                             </div>
                         `;
                         layer.bindPopup(popupHtml, { maxWidth: 260 }).openPopup();
