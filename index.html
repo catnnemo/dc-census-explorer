@@ -707,15 +707,25 @@
         map.getPane('labelsPane').style.zIndex = 650;
         map.getPane('labelsPane').style.pointerEvents = 'none';
 
-        const baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CartoDB, OpenStreetMap contributors',
-            maxZoom: 19
+        const baseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri, OpenStreetMap contributors',
+            maxZoom: 16
         }).addTo(map);
 
-        const labelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
+        const labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 16,
             pane: 'labelsPane'
         }).addTo(map);
+
+        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 18
+        });
+
+        L.control.layers({
+            "Light Gray": baseLayer,
+            "OpenStreetMap": osmLayer
+        }, null, { position: 'bottomright' }).addTo(map);
 
         const ringsGroup = L.layerGroup().addTo(map);
         [5, 10, 15, 20, 25, 30].forEach(mi => {
