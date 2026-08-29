@@ -1005,9 +1005,10 @@
             const lat = p.lat || 38.9072;
             const lon = p.lon || -77.0369;
             // Wide map bounds (~4 miles in each direction) so Zillow returns all
-            // listings covering the full neighborhood instead of anchoring to one ZIP.
-            const dLat = 4.0 / 69.0;          // ~4 miles north/south
-            const dLon = 4.0 / (69.0 * 0.74); // ~4 miles east/west at this latitude
+            // Tight bounds centered on the tract centroid, ~7-8 city blocks wide
+            // (DC block ≈ 200 ft ≈ 0.038 mi; 8 blocks ≈ 0.3 mi ≈ 1600 ft diameter).
+            const dLat = 0.15 / 69.0;          // ~0.15 mi north/south
+            const dLon = 0.15 / (69.0 * 0.74); // ~0.15 mi east/west at this latitude
             const zillow = new URL('https://www.zillow.com/homes/for_rent/');
             zillow.searchParams.set('searchQueryState', JSON.stringify({
                 isMapVisible: true,
@@ -1028,7 +1029,7 @@
                     nc: { value: false }
                 },
                 isListVisible: true,
-                mapZoom: 11
+                mapZoom: 15
             }));
             return zillow.toString();
         }
